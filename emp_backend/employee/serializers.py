@@ -8,7 +8,7 @@ class DepartmentSerializer(serializers.ModelSerializer):
 
 class EmployeeSerializer(serializers.ModelSerializer):
     department = DepartmentSerializer(read_only=True)
-    department_id = serializers.PrimaryKeyField(queryset=Department.objects.all(), 
+    department_id = serializers.PrimaryKeyRelatedField(queryset=Department.objects.all(), 
                                                source='department', write_only=True)
 
     class Meta:
@@ -18,7 +18,7 @@ class EmployeeSerializer(serializers.ModelSerializer):
 
 class AttendanceSerializer(serializers.ModelSerializer):
     employee = EmployeeSerializer(read_only=True)
-    employee_id = serializers.PrimaryKeyField(queryset=Employee.objects.all(), 
+    employee_id = serializers.PrimaryKeyRelatedField(queryset=Employee.objects.all(), 
                                              source='employee', write_only=True)
     class Meta:
         model = Attendance
@@ -26,7 +26,7 @@ class AttendanceSerializer(serializers.ModelSerializer):
 
 class LeaveRequestSerializer(serializers.ModelSerializer):
     employee = EmployeeSerializer(read_only=True)
-    employee_id = serializers.PrimaryKeyField(queryset=Employee.objects.all(), 
+    employee_id = serializers.PrimaryKeyRelatedField(queryset=Employee.objects.all(), 
                                              source='employee', write_only=True)
     class Meta:
         model = LeaveRequest
