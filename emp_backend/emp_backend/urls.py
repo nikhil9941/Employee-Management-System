@@ -17,6 +17,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path,include
 from rest_framework import routers
+from user.views import RegisterView, LogoutView, LoginView
+from rest_framework_simplejwt.views import TokenRefreshView
 from employee.views import EmployeeViewSet, DepartmentViewSet, AttendanceViewSet, LeaveRequestViewSet
 router=routers.DefaultRouter()
 router.register(r'employees', EmployeeViewSet, basename='employees')
@@ -25,6 +27,10 @@ router.register(r'attendances', AttendanceViewSet, basename='attendances')
 router.register(r'leaverequests', LeaveRequestViewSet, basename='leaverequests')
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('',include(router.urls))
+    path('',include(router.urls)),
+    path('signup/',RegisterView.as_view(), name='signup'),
+    path('login/',LoginView.as_view(),name='login'),
+    path('logout/',LogoutView.as_view(), name='logout'),
+    path('token/refresh',TokenRefreshView.as_view(), name='refresh')
     #path('api-auth/', include('rest_framework.urls'))
 ]

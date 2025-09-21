@@ -13,7 +13,7 @@ class EmployeeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Employee
-        fields = ['id', 'first_name', 'last_name', 'email', 'role', 'hire_date', 'is_activate',
+        fields = ['id', 'first_name', 'last_name', 'email', 'role', 'hire_date', 'is_active',
                   'department', 'department_id']
 
 class AttendanceSerializer(serializers.ModelSerializer):
