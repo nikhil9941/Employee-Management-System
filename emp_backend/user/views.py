@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.contrib.auth.models import User
+from rest_framework.permissions import IsAuthenticated, AllowAny
 # Create your views here.
 from rest_framework.views import APIView
 from rest_framework import generics, status
@@ -8,6 +9,7 @@ from .serializers import RegisterSerializer, LoginSerializer
 from django.contrib.auth import logout, authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 class RegisterView(APIView):
+    permission_classes = [AllowAny]
     def post(self, request):
         serializer=RegisterSerializer(data=request.data)
         if serializer.is_valid():
@@ -23,6 +25,7 @@ class RegisterView(APIView):
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
 
 class LoginView(APIView):
+    permission_classes = [AllowAny]
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         if  serializer.is_valid():
@@ -40,6 +43,7 @@ class LoginView(APIView):
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
 
 class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
     def post(self, request):
         try:
             refresh = RefreshToken.for_user(request.data['refresh'])
