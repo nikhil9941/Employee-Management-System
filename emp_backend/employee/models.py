@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.conf import settings 
 class Department(models.Model):
     name = models.CharField(max_length=50, unique=True)
     description =models.TextField(blank=True, null=True)
@@ -9,6 +9,7 @@ class Department(models.Model):
 
 class Employee(models.Model):
     ROLES_CHOICES = [('Admin','Admin'), ('Manager','Manager'), ('Staff','Staff')]
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30)
     department = models.ForeignKey('Department', on_delete=models.CASCADE)
