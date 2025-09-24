@@ -9,7 +9,7 @@ class Department(models.Model):
 
 class Employee(models.Model):
     ROLES_CHOICES = [('Admin','Admin'), ('Manager','Manager'), ('Staff','Staff')]
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30)
     department = models.ForeignKey('Department', on_delete=models.CASCADE)
@@ -31,15 +31,23 @@ class Employee(models.Model):
         ]
 
 class Attendance(models.Model):
-    STATUS_CHOICES = [('Present','Present'),('Absent','Absent')]
-    employee = models.ForeignKey('Employee', on_delete=models.CASCADE)
+    STATUS_CHOICES = [
+        ('present', 'Present'),
+        ('absent', 'Absent'),
+    ]
+
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
     date = models.DateField()
-    check_in = models.TimeField()
-    check_out =models.TimeField()
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES,default='Absent')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES)
+    check_in = models.TimeField(blank=True, null=True)
+    check_out = models.TimeField(blank=True, null=True)
+    class Meta:
+        # Ensure one attendance record per employee per day
+        unique_together = ('employee', 'date')
+        ordering = ['-date']
 
     def __str__(self):
-        return f"{self.employee}- {self.date} : {self.status}"
+        return f"{self.employee} - {self.date} - {self.status}"
 
 class LeaveRequest(models.Model):
     STATUS_CHOICES = [('Pending','Pending'),('Approved','Approved'),('Rejected','Rejected')]

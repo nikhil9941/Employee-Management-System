@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.utils import timezone
 from .models import Employee, Department, Attendance, LeaveRequest
 from django.contrib.auth.models import User
 class DepartmentSerializer(serializers.ModelSerializer):
@@ -28,12 +29,22 @@ class EmployeeSerializer(serializers.ModelSerializer):
         return fields
 
 class AttendanceSerializer(serializers.ModelSerializer):
-    employee = EmployeeSerializer(read_only=True)
-    employee_id = serializers.PrimaryKeyRelatedField(queryset=Employee.objects.all(), 
-                                             source='employee', write_only=True)
+    employee = serializers.PrimaryKeyRelatedField(
+        queryset=Employee.objects.all(),
+        required=False
+    )
+
     class Meta:
         model = Attendance
-        fields = ['id', 'employee','employee_id', 'date', 'check_in', 'check_out', 'status']
+        fields = ['id', 'employee', 'date', 'status', 'check_in', 'check_out']
+        read_only_fields = ['date', 'check_in']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        request = self.context.get('request')
+        if request and not request.user.is_staff:
+            self.fields.pop('employee', None)
+
 
 class LeaveRequestSerializer(serializers.ModelSerializer):
     employee = EmployeeSerializer(read_only=True)
