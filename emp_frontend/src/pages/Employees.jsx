@@ -13,22 +13,28 @@ import React, { useEffect, useState } from "react";
 import {
   listEmployee,
   createEmployee,
-  getEmployee,
   updateEmployee,
   deleteEmployee,
-  partialUpdateEmployee,
-} from "../api/employeeApi"; // make sure this path is correct
+} from "../api/employeeApi";
+import { listDepartments } from "../api/departmentApi";
 
 const Employees = () => {
   const [employees, setEmployees] = useState([]);
-  const [formData, setFormData] = useState({ name: "", role: "" });
+  const [departments, setDepartments] = useState([]);
+  const [formData, setFormData] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+    role: "Staff",
+    department_id: "",
+  });
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Fetch employees on mount
   useEffect(() => {
     fetchEmployees();
+    fetchDepartments();
   }, []);
 
   const fetchEmployees = async () => {
@@ -44,6 +50,15 @@ const Employees = () => {
     }
   };
 
+  const fetchDepartments = async () => {
+    try {
+      const res = await listDepartments();
+      setDepartments(res.data);
+    } catch (err) {
+      console.error("Failed to fetch departments:", err);
+    }
+  };
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -52,14 +67,18 @@ const Employees = () => {
     e.preventDefault();
     try {
       if (editingId) {
-        // Update employee
         await updateEmployee(editingId, formData);
         setEditingId(null);
       } else {
-        // Create employee
         await createEmployee(formData);
       }
-      setFormData({ name: "", role: "" });
+      setFormData({
+        first_name: "",
+        last_name: "",
+        email: "",
+        role: "Staff",
+        department_id: "",
+      });
       fetchEmployees();
     } catch (err) {
       setError("Failed to save employee.");
@@ -69,7 +88,13 @@ const Employees = () => {
 
   const handleEdit = (employee) => {
     setEditingId(employee.id);
-    setFormData({ name: employee.name, role: employee.role });
+    setFormData({
+      first_name: employee.first_name,
+      last_name: employee.last_name,
+      email: employee.email,
+      role: employee.role,
+      department_id: employee.department?.id || "",
+    });
   };
 
   const handleDelete = async (id) => {
@@ -92,20 +117,45 @@ const Employees = () => {
       <form onSubmit={handleSubmit}>
         <input
           type="text"
-          name="name"
-          placeholder="Name"
-          value={formData.name}
+          name="first_name"
+          placeholder="First Name"
+          value={formData.first_name}
           onChange={handleChange}
           required
         />
         <input
           type="text"
-          name="role"
-          placeholder="Role"
-          value={formData.role}
+          name="last_name"
+          placeholder="Last Name"
+          value={formData.last_name}
           onChange={handleChange}
           required
         />
+        <input
+          type="email"
+          name="email"
+          placeholder="Email"
+          value={formData.email}
+          onChange={handleChange}
+          required
+        />
+        <select name="role" value={formData.role} onChange={handleChange} required>
+          <option value="Admin">Admin</option>
+          <option value="Manager">Manager</option>
+          <option value="Staff">Staff</option>
+        </select>
+        <select
+          name="department_id"
+          value={formData.department_id}
+          onChange={handleChange}
+        >
+          <option value="">Select Department</option>
+          {departments.map((dept) => (
+            <option key={dept.id} value={dept.id}>
+              {dept.name}
+            </option>
+          ))}
+        </select>
         <button type="submit">{editingId ? "Update" : "Add"} Employee</button>
       </form>
 
@@ -118,7 +168,9 @@ const Employees = () => {
             <tr>
               <th>ID</th>
               <th>Name</th>
+              <th>Email</th>
               <th>Role</th>
+              <th>Department</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -127,8 +179,10 @@ const Employees = () => {
               employees.map((emp) => (
                 <tr key={emp.id}>
                   <td>{emp.id}</td>
-                  <td>{emp.name}</td>
+                  <td>{`${emp.first_name} ${emp.last_name}`}</td>
+                  <td>{emp.email}</td>
                   <td>{emp.role}</td>
+                  <td>{emp.department?.name || "-"}</td>
                   <td>
                     <button onClick={() => handleEdit(emp)}>Edit</button>
                     <button onClick={() => handleDelete(emp.id)}>Delete</button>
@@ -137,7 +191,7 @@ const Employees = () => {
               ))
             ) : (
               <tr>
-                <td colSpan="4">No employees found.</td>
+                <td colSpan="6">No employees found.</td>
               </tr>
             )}
           </tbody>
