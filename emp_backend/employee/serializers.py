@@ -45,13 +45,17 @@ class AttendanceSerializer(serializers.ModelSerializer):
         if request and not request.user.is_staff:
             self.fields.pop('employee', None)
 
-
 class LeaveRequestSerializer(serializers.ModelSerializer):
     employee = EmployeeSerializer(read_only=True)
-    employee_id = serializers.PrimaryKeyRelatedField(queryset=Employee.objects.all(), 
-                                             source='employee', write_only=True)
+    employee_id = serializers.PrimaryKeyRelatedField(
+        queryset=Employee.objects.all(),
+        source='employee',
+        write_only=True,
+        required=False  # <--- important!
+    )
+
     class Meta:
         model = LeaveRequest
         fields = ['id', 'employee', 'employee_id', 'start_date', 'end_date', 'reason',
-                    'status', 'approved_by']
+                  'status', 'approved_by']
         read_only_fields = ['status', 'approved_by']

@@ -1,7 +1,6 @@
 // const Dashboard = () => {
 //   return (
 //     <div>
-//       <h2>Dashboard</h2>
 //       <p>Welcome to Employee Management System.</p>
 //     </div>
 //   );

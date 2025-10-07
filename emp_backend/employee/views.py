@@ -4,7 +4,7 @@ from rest_framework import viewsets
 from .models import Employee, Department, Attendance, LeaveRequest
 from .serializers import EmployeeSerializer, DepartmentSerializer, AttendanceSerializer, LeaveRequestSerializer
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
-from .permissions import IsSelfOrAdmin, IsSelf
+from .permissions import IsSelfOrAdmin, IsSelf, IsOwnerorAdmin
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -66,4 +66,53 @@ class AttendanceViewSet(viewsets.ModelViewSet):
 class LeaveRequestViewSet(viewsets.ModelViewSet):
     queryset = LeaveRequest.objects.all()
     serializer_class = LeaveRequestSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsOwnerorAdmin]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            # Staff can view all leave requests
+            return LeaveRequest.objects.all()
+        # Employees can view only their own leave requests
+        return LeaveRequest.objects.filter(employee__user=user)
+
+    def perform_create(self, serializer):
+        user = self.request.user
+
+        # Determine employee automatically
+        if user.is_staff:
+            # Staff can specify any employee, or default to their own if not given
+            employee = serializer.validated_data.get("employee")
+            if not employee:
+                try:
+                    employee = user.employee
+                except Employee.DoesNotExist:
+                    raise serializers.ValidationError(
+                        "Staff must specify an employee or have an employee profile linked."
+                    )
+        else:
+            # Normal employee → auto-link to their own profile
+            try:
+                employee = user.employee
+            except Employee.DoesNotExist:
+                raise serializers.ValidationError(
+                    "Your user account is not linked to an employee profile."
+                )
+
+        start_date = serializer.validated_data.get("start_date")
+        end_date = serializer.validated_data.get("end_date")
+
+        # Prevent overlapping leave requests for same employee
+        if LeaveRequest.objects.filter(
+            employee=employee,
+            start_date__lte=end_date,
+            end_date__gte=start_date,
+        ).exists():
+            raise serializers.ValidationError({
+                "non_field_errors": [
+                    "You already have a leave request overlapping these dates."
+                ]
+            })
+
+        # Save with correct employee
+        serializer.save(employee=employee)

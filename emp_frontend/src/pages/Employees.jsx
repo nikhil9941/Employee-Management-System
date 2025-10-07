@@ -1,14 +1,3 @@
-// const Employees = () => {
-//   return (
-//     <div>
-//       <h2>Employees</h2>
-//       <p>Employee list will be displayed here.</p>
-//     </div>
-//   );
-// };
-
-// export default Employees;
-
 import React, { useEffect, useState } from "react";
 import {
   listEmployee,
@@ -27,6 +16,7 @@ const Employees = () => {
     email: "",
     role: "Staff",
     department_id: "",
+    user_id: "",
   });
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -78,6 +68,7 @@ const Employees = () => {
         email: "",
         role: "Staff",
         department_id: "",
+        user_id: "",
       });
       fetchEmployees();
     } catch (err) {
@@ -94,6 +85,7 @@ const Employees = () => {
       email: employee.email,
       role: employee.role,
       department_id: employee.department?.id || "",
+      user_id: employee.user?.id || "",
     });
   };
 
@@ -156,6 +148,16 @@ const Employees = () => {
             </option>
           ))}
         </select>
+
+        {/* Manual user_id input */}
+        <input
+          type="number"
+          name="user_id"
+          placeholder="User ID"
+          value={formData.user_id}
+          onChange={handleChange}
+        />
+
         <button type="submit">{editingId ? "Update" : "Add"} Employee</button>
       </form>
 
@@ -171,6 +173,7 @@ const Employees = () => {
               <th>Email</th>
               <th>Role</th>
               <th>Department</th>
+              <th>User</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -183,6 +186,7 @@ const Employees = () => {
                   <td>{emp.email}</td>
                   <td>{emp.role}</td>
                   <td>{emp.department?.name || "-"}</td>
+                  <td>{emp.user || "-"}</td>
                   <td>
                     <button onClick={() => handleEdit(emp)}>Edit</button>
                     <button onClick={() => handleDelete(emp.id)}>Delete</button>
@@ -191,7 +195,7 @@ const Employees = () => {
               ))
             ) : (
               <tr>
-                <td colSpan="6">No employees found.</td>
+                <td colSpan="7">No employees found.</td>
               </tr>
             )}
           </tbody>
